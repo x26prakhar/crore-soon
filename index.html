@@ -68,18 +68,6 @@
     }
     .yr-btn.active { border-color: #4ade80; background: rgba(74,222,128,0.15); color: #4ade80; }
 
-    /* Savings Preview Bar */
-    .preview-bar {
-      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-      padding: 14px 16px; margin-bottom: 20px;
-      display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 0;
-    }
-    .preview-bar .pb-label { font-size: 11px; color: #64748b; font-weight: 500; }
-    .preview-bar .pb-value { font-size: 18px; font-weight: 800; color: #16a34a; }
-    .preview-bar .pb-detail { font-size: 11px; color: #94a3b8; margin-top: 1px; }
-    .preview-bar .pb-warn { color: #ef4444; }
-    .preview-divider { width: 1px; height: 40px; background: #e2e8f0; justify-self: center; }
-    .preview-item { text-align: center; padding: 0 8px; }
 
     /* Accordion */
     .accordion { display: flex; flex-direction: column; gap: 10px; }
@@ -311,10 +299,6 @@
       .field-grid-3 { grid-template-columns: 1fr 1fr; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .swr-card { grid-template-columns: 1fr; }
-      .preview-bar { padding: 12px 10px; }
-      .preview-item { padding: 0 4px; }
-      .preview-bar .pb-value { font-size: 15px; }
-      .preview-bar .pb-label { font-size: 10px; }
       .slider-row { flex-wrap: wrap; }
       .slider-label { min-width: auto; width: 100%; }
     }
@@ -654,26 +638,6 @@
 
     </div><!-- end accordion -->
 
-    <!-- SAVINGS PREVIEW — shows after filling income & expenses -->
-    <div class="preview-bar" id="preview-bar" style="margin-top:20px">
-      <div class="preview-item">
-        <div class="pb-label">Estimated Year 1 Savings</div>
-        <div class="pb-value" id="prev-savings">₹—</div>
-        <div class="pb-detail" id="prev-savings-sub">Fill in income &amp; expenses above</div>
-      </div>
-      <div class="preview-divider"></div>
-      <div class="preview-item">
-        <div class="pb-label">Monthly SIP Capacity</div>
-        <div class="pb-value" id="prev-sip">₹—</div>
-        <div class="pb-detail" id="prev-sip-sub">per month</div>
-      </div>
-      <div class="preview-divider"></div>
-      <div class="preview-item">
-        <div class="pb-label">Savings Rate</div>
-        <div class="pb-value" id="prev-rate">—</div>
-        <div class="pb-detail" id="prev-rate-sub">of net income</div>
-      </div>
-    </div>
 
     <div style="height:16px"></div>
     <button class="compute-btn" onclick="compute()">How soon is my Crore? →</button>
@@ -899,19 +863,7 @@ function project(overrides = {}) {
 // ──────────────────────────────────────────────
 // LIVE PREVIEW (input page)
 // ──────────────────────────────────────────────
-function livePreview() {
-  try {
-    const { rows } = project();
-    const r = rows[0];
-    $('prev-savings').textContent = fmtS(r.savings);
-    $('prev-savings').className   = 'pb-value' + (r.savings < 0 ? ' pb-warn' : '');
-    $('prev-sip').textContent     = fmtS(r.savings / 12);
-    $('prev-rate').textContent    = pct(r.savRate);
-    $('prev-savings-sub').textContent = `Net income: ${fmtS(r.netInc)} · Tax: ${fmtS(r.tax)}`;
-    $('prev-sip-sub').textContent = 'per month';
-    $('prev-rate-sub').textContent = r.savRate < 0.3 ? '⚠ Low — aim for 40%+' : r.savRate >= 0.5 ? '✓ Excellent' : '✓ Good';
-  } catch(e) {}
-}
+function livePreview() {}
 
 // ──────────────────────────────────────────────
 // COMPUTE — switch to results page
