@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CroreSoon — Plan Your Path to a Crore</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ── HEADER ── */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky; top: 0; z-index: 100;
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 17px; font-weight: 800; color: #0f172a; }
+    .logo span { color: #16a34a; }
+    .header-meta { font-size: 11px; color: #94a3b8; }
+
+    /* ── PAGE VIEWS ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── INPUTS PAGE ── */
+    .input-wrap {
+      max-width: 720px; margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* Goal Hero */
+    .goal-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      border-radius: 16px; padding: 28px 28px 24px;
+      margin-bottom: 24px; color: #fff;
+    }
+    .goal-hero h2 { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .goal-hero h1 { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+    .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .goal-field label { display: block; font-size: 12px; color: #94a3b8; font-weight: 500; margin-bottom: 6px; }
+    .goal-inp {
+      width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 15px; font-weight: 600;
+      outline: none; transition: border 0.15s;
+    }
+    .goal-inp:focus { border-color: #4ade80; background: rgba(255,255,255,0.15); }
+    .goal-inp::placeholder { color: rgba(255,255,255,0.35); font-weight: 400; }
+    .goal-inp-wrap { position: relative; }
+    .goal-inp-wrap .gpfx { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; }
+    .goal-inp-wrap .gsfx { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px; }
+    .goal-inp-wrap input { padding-left: 26px; }
+    .years-row { display: flex; gap: 6px; margin-top: 6px; }
+    .yr-btn {
+      flex: 1; padding: 8px 4px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.07); color: #cbd5e1; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .yr-btn.active { border-color: #4ade80; background: rgba(74,222,128,0.15); color: #4ade80; }
+
+    /* Savings Preview Bar */
+    .preview-bar {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 14px 20px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .preview-bar .pb-label { font-size: 12px; color: #64748b; font-weight: 500; }
+    .preview-bar .pb-value { font-size: 20px; font-weight: 800; color: #16a34a; }
+    .preview-bar .pb-detail { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .preview-bar .pb-warn { color: #ef4444; }
+    .preview-divider { width: 1px; height: 36px; background: #e2e8f0; }
+    .preview-item { text-align: center; }
+
+    /* Accordion */
+    .accordion { display: flex; flex-direction: column; gap: 10px; }
+    .acc-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .acc-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; cursor: pointer; user-select: none;
+      transition: background 0.12s;
+    }
+    .acc-header:hover { background: #f8fafc; }
+    .acc-header-left { display: flex; align-items: center; gap: 12px; }
+    .acc-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #f1f5f9; color: #64748b;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .acc-item.open .acc-num { background: #dcfce7; color: #16a34a; }
+    .acc-title { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .acc-subtitle { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .acc-chevron { color: #94a3b8; font-size: 16px; transition: transform 0.2s; }
+    .acc-item.open .acc-chevron { transform: rotate(180deg); }
+    .acc-body { display: none; padding: 0 20px 20px; border-top: 1px solid #f1f5f9; }
+    .acc-item.open .acc-body { display: block; padding-top: 18px; }
+
+    /* Form fields */
+    .field-grid { display: grid; gap: 14px; }
+    .field-grid-2 { grid-template-columns: 1fr 1fr; }
+    .field-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .field .hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+    .inp-wrap { position: relative; }
+    .inp-wrap .pfx { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 13px; pointer-events: none; }
+    .inp-wrap .sfx { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 12px; pointer-events: none; }
+    .inp {
+      width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      padding: 9px 12px; font-size: 14px; outline: none;
+      background: #f8fafc; color: #1e293b; transition: border 0.15s, background 0.15s;
+    }
+    .inp:focus { border-color: #16a34a; background: #fff; }
+    .inp.has-pfx { padding-left: 22px; }
+    .inp.has-sfx { padding-right: 28px; }
+
+    /* Toggle buttons */
+    .toggle-group { display: flex; gap: 8px; }
+    .tgl-btn {
+      flex: 1; padding: 9px 8px; border-radius: 8px;
+      border: 1.5px solid #e2e8f0; background: #f8fafc;
+      font-size: 13px; font-weight: 600; color: #64748b;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .tgl-btn.active { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+
+    /* Kids buttons */
+    .kids-btn {
+      flex: 1; padding: 12px 8px; border-radius: 10px;
+      border: 2px solid #e2e8f0; background: #f8fafc;
+      font-size: 13px; font-weight: 700; color: #64748b;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .kids-btn.active { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+
+    /* Toggle switch */
+    .sw-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+    .sw-row-label { font-size: 13px; font-weight: 500; color: #374151; }
+    .sw-row-sub { font-size: 11px; color: #9ca3af; }
+    .switch { position: relative; display: inline-block; width: 42px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background: #d1d5db; transition: .25s; border-radius: 24px;
+    }
+    .switch-slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px;
+      left: 3px; bottom: 3px; background: #fff;
+      transition: .25s; border-radius: 50%;
+    }
+    input:checked + .switch-slider { background: #16a34a; }
+    input:checked + .switch-slider:before { transform: translateX(18px); }
+
+    /* Compute button */
+    .compute-btn {
+      width: 100%; background: #16a34a; color: #fff;
+      padding: 16px; border-radius: 12px; border: none;
+      font-size: 16px; font-weight: 800; cursor: pointer;
+      letter-spacing: 0.02em; transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .compute-btn:hover { background: #15803d; }
+
+    /* ── RESULTS PAGE ── */
+    .results-wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    .results-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #fff; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      padding: 8px 16px; font-size: 13px; font-weight: 600; color: #374151;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .back-btn:hover { border-color: #16a34a; color: #16a34a; }
+    .results-title { font-size: 18px; font-weight: 800; color: #0f172a; }
+
+    /* Goal badge */
+    .goal-hit { background: #f0fdf4; border: 2px solid #16a34a; border-radius: 16px; padding: 28px 28px 24px; margin-bottom: 20px; position: relative; overflow: hidden; }
+    .goal-miss { background: #fef2f2; border: 2px solid #ef4444; border-radius: 16px; padding: 28px 28px 24px; margin-bottom: 20px; }
+    #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .goal-badge-icon { font-size: 36px; margin-bottom: 10px; }
+    .goal-badge-title { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+    .goal-badge-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 4px; }
+    .gbs-item { background: rgba(255,255,255,0.7); border-radius: 10px; padding: 12px 14px; }
+    .goal-miss .gbs-item { background: rgba(255,255,255,0.6); }
+    .gbs-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 4px; }
+    .gbs-val { font-size: 18px; font-weight: 800; color: #0f172a; }
+    .gbs-val.green { color: #15803d; }
+    .gbs-val.red { color: #dc2626; }
+    .goal-suggestions { margin-top: 20px; border-top: 1px solid #fecaca; padding-top: 16px; }
+    .goal-suggestions-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #991b1b; margin-bottom: 10px; }
+    .sug-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #7f1d1d; margin-bottom: 8px; background: rgba(255,255,255,0.5); border-radius: 8px; padding: 10px 12px; }
+    .sug-icon { font-size: 16px; flex-shrink: 0; }
+    @media (max-width: 600px) { .goal-badge-stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Assumptions card */
+    .assumptions-card {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 16px;
+    }
+    .assumptions-card h4 { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .assumptions-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill {
+      background: #f1f5f9; border-radius: 20px; padding: 4px 12px;
+      font-size: 12px; color: #475569; font-weight: 500;
+    }
+    .pill strong { color: #0f172a; }
+
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
+    .stat-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 4px; }
+    .stat-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+    /* SWR card */
+    .swr-card {
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .swr-label { font-size: 11px; font-weight: 600; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.05em; }
+    .swr-value { font-size: 20px; font-weight: 800; color: #1e40af; margin-top: 4px; }
+    .swr-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* What-if sliders */
+    .whatif-card {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 18px 20px; margin-bottom: 16px;
+    }
+    .whatif-card h4 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .whatif-card h4 span { font-size: 11px; font-weight: 500; color: #94a3b8; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; }
+    .slider-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .slider-row:last-child { margin-bottom: 0; }
+    .slider-label { font-size: 12px; font-weight: 600; color: #374151; min-width: 150px; }
+    .slider-val { font-size: 14px; font-weight: 800; color: #16a34a; min-width: 50px; text-align: right; }
+    input[type="range"] {
+      flex: 1; -webkit-appearance: none; height: 4px; border-radius: 4px;
+      background: #e2e8f0; outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: #16a34a; cursor: pointer; border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Chart card */
+    .chart-card {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 18px 20px; margin-bottom: 16px;
+    }
+    .chart-card h4 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 14px; }
+    .chart-legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* Table */
+    .table-card {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 18px 20px; margin-bottom: 16px; overflow-x: auto;
+    }
+    .table-card h4 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px; }
+    thead th {
+      background: #f8fafc; color: #64748b; font-weight: 700;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 8px 10px; text-align: right; border-bottom: 1px solid #e2e8f0;
+    }
+    thead th:first-child { text-align: left; }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; text-align: right; color: #374151; }
+    tbody td:first-child { text-align: left; font-weight: 700; color: #0f172a; }
+    tbody tr:hover td { background: #f8fafc; }
+    .td-green { color: #16a34a; font-weight: 700; }
+    .td-red { color: #ef4444; }
+    .td-amber { color: #f59e0b; font-weight: 600; }
+    .td-muted { color: #94a3b8; }
+
+    /* Warnings */
+    .warn-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #92400e; margin-bottom: 8px; }
+
+/* Field sliders */
+    .field-slide-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .field-slide-header label { margin-bottom: 0; }
+    .slide-val { font-size: 14px; font-weight: 800; color: #16a34a; white-space: nowrap; padding-left: 8px; }
+    .goal-field .slide-val { color: #4ade80; }
+    input.field-range { width: 100%; display: block; -webkit-appearance: none; height: 4px; border-radius: 4px; background: #e2e8f0; outline: none; cursor: pointer; margin-top: 4px; }
+    input.field-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #16a34a; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .goal-field input.field-range { background: rgba(255,255,255,0.25); }
+    .goal-field input.field-range::-webkit-slider-thumb { background: #4ade80; }
+
+    /* Disclaimer */
+    .disclaimer { font-size: 11px; color: #94a3b8; line-height: 1.7; padding: 8px 0; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .goal-grid { grid-template-columns: 1fr; }
+      .field-grid-2 { grid-template-columns: 1fr; }
+      .field-grid-3 { grid-template-columns: 1fr 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .swr-card { grid-template-columns: 1fr; }
+      .preview-divider { display: none; }
+      .slider-row { flex-wrap: wrap; }
+      .slider-label { min-width: auto; width: 100%; }
+    }
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">Crore<span>Soon</span></div>
+  <div class="header-meta">🇮🇳 New Tax Regime FY26 · LTCG 12.5%</div>
+</header>
+
+<!-- ================================================================ -->
+<!-- PAGE 1: INPUTS                                                    -->
+<!-- ================================================================ -->
+<div id="page-input" class="page active">
+  <div class="input-wrap">
+
+    <!-- GOAL HERO — always visible -->
+    <div class="goal-hero">
+      <h2>Step 1 of 2 — Define your goal</h2>
+      <h1>What does financial freedom look like for you?</h1>
+      <div class="goal-grid">
+        <div class="goal-field">
+          <label>Target Corpus</label>
+          <div class="goal-inp-wrap">
+            <span class="gpfx">₹</span>
+            <input class="goal-inp" type="number" id="goalCorpus" value="50000000" placeholder="5,00,00,000" oninput="livePreview()" />
+          </div>
+        </div>
+        <div class="goal-field">
+          <label>Starting Corpus (what you have today)</label>
+          <div class="goal-inp-wrap">
+            <span class="gpfx">₹</span>
+            <input class="goal-inp" type="number" id="startCorpus" value="0" placeholder="0" oninput="livePreview()" />
+          </div>
+        </div>
+        <div class="goal-field" style="grid-column: 1 / -1;">
+          <label>Projection Period</label>
+          <div class="years-row">
+            <button class="yr-btn" onclick="setYears(5)">5 yrs</button>
+            <button class="yr-btn" onclick="setYears(7)">7 yrs</button>
+            <button class="yr-btn active" onclick="setYears(10)">10 yrs</button>
+            <button class="yr-btn" onclick="setYears(15)">15 yrs</button>
+            <button class="yr-btn" onclick="setYears(20)">20 yrs</button>
+            <button class="yr-btn" onclick="setYears(25)">25 yrs</button>
+          </div>
+          <input type="hidden" id="projYears" value="10" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCORDION -->
+    <div class="accordion">
+
+      <!-- A1: INCOME -->
+      <div class="acc-item open" id="acc-income">
+        <div class="acc-header" onclick="toggleAcc('acc-income')">
+          <div class="acc-header-left">
+            <div class="acc-num">1</div>
+            <div>
+              <div class="acc-title">Income</div>
+              <div class="acc-subtitle">Who's earning and how much</div>
+            </div>
+          </div>
+          <span class="acc-chevron">▾</span>
+        </div>
+        <div class="acc-body">
+          <div style="margin-bottom:14px">
+            <label class="field" style="display:block;margin-bottom:8px"><span style="font-size:12px;font-weight:600;color:#374151">Household Type</span></label>
+            <div class="toggle-group">
+              <button class="tgl-btn active" id="btn-couple" onclick="setType('couple')">👫 Couple</button>
+              <button class="tgl-btn" id="btn-solo" onclick="setType('solo')">🙋 Solo</button>
+            </div>
+          </div>
+          <div class="field-grid field-grid-2">
+            <div class="field">
+              <label>Person 1 — Gross Annual Income</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="inc1" value="3500000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field" id="inc2-wrap">
+              <label>Person 2 — Gross Annual Income</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="inc2" value="2500000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Starting Age <span style="font-weight:400;color:#9ca3af">(younger person)</span></label>
+              <input class="inp" type="number" id="age" value="30" min="18" max="60" oninput="livePreview()" />
+            </div>
+            <div class="field">
+              <label>Income Growth Rate (per year)</label>
+              <div class="inp-wrap"><input class="inp has-sfx" type="number" id="incGrowth" value="7" min="0" max="30" step="0.5" oninput="livePreview()" /><span class="sfx">%</span></div>
+              <div class="hint">Both persons grow at the same rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A2: INVESTMENT SETTINGS -->
+      <div class="acc-item" id="acc-invest">
+        <div class="acc-header" onclick="toggleAcc('acc-invest')">
+          <div class="acc-header-left">
+            <div class="acc-num">2</div>
+            <div>
+              <div class="acc-title">Investment Settings</div>
+              <div class="acc-subtitle">Returns, inflation, savings rate</div>
+            </div>
+          </div>
+          <span class="acc-chevron">▾</span>
+        </div>
+        <div class="acc-body">
+          <div class="field-grid field-grid-2">
+            <div class="field">
+              <label>Expected Annual Return (pre-tax)</label>
+              <div class="inp-wrap"><input class="inp has-sfx" type="number" id="baseReturn" value="10" min="1" max="25" step="0.5" oninput="livePreview()" /><span class="sfx">%</span></div>
+              <div class="hint">You can tweak this on the results page with the What-If slider</div>
+            </div>
+            <div class="field">
+              <label>General Inflation Rate</label>
+              <div class="inp-wrap"><input class="inp has-sfx" type="number" id="genInflation" value="6" step="0.5" oninput="livePreview()" /><span class="sfx">%</span></div>
+              <div class="hint">Your expenses grow by this % every year</div>
+            </div>
+          </div>
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:#166534">
+            Returns are auto-adjusted for <strong>12.5% LTCG tax</strong> on equity gains above ₹1.25L/year (Budget 2024 rates). What you enter is pre-tax; what's used is post-tax.
+          </div>
+        </div>
+      </div>
+
+      <!-- A3: MONTHLY EXPENSES -->
+      <div class="acc-item" id="acc-monthly">
+        <div class="acc-header" onclick="toggleAcc('acc-monthly')">
+          <div class="acc-header-left">
+            <div class="acc-num">3</div>
+            <div>
+              <div class="acc-title">Monthly Expenses</div>
+              <div class="acc-subtitle">Your recurring monthly spend</div>
+            </div>
+          </div>
+          <span class="acc-chevron">▾</span>
+        </div>
+        <div class="acc-body">
+          <div class="field-grid field-grid-2">
+            <div class="field">
+              <label>Rent / Housing</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_rent" value="40000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Groceries</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_grocery" value="7500" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Eating Out & Delivery</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_eat" value="25000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Transport & Fuel</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_transport" value="8000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Utilities & Internet</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_util" value="5000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Subscriptions & OTT</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_subs" value="3000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Domestic Help / Maid</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_help" value="5000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Parental Support</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_parents" value="0" oninput="livePreview()" /></div>
+              <div class="hint">Monthly transfer to parents</div>
+            </div>
+            <div class="field">
+              <label>Other Monthly</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_other_m" value="5000" oninput="livePreview()" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A4: ANNUAL EXPENSES -->
+      <div class="acc-item" id="acc-annual">
+        <div class="acc-header" onclick="toggleAcc('acc-annual')">
+          <div class="acc-header-left">
+            <div class="acc-num">4</div>
+            <div>
+              <div class="acc-title">Annual Expenses</div>
+              <div class="acc-subtitle">Vacations, insurance, big-ticket items</div>
+            </div>
+          </div>
+          <span class="acc-chevron">▾</span>
+        </div>
+        <div class="acc-body">
+          <div class="field-grid field-grid-2">
+            <div class="field">
+              <label>Vacations</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_vacation" value="500000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Health Insurance Premium</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_health" value="15000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Term / Life Insurance Premium</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_life" value="30000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Weddings / Gifts / Festivals</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_gifts" value="150000" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Other Annual</label>
+              <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_other_a" value="0" oninput="livePreview()" /></div>
+            </div>
+            <div class="field">
+              <label>Expense Inflation Rate</label>
+              <div class="inp-wrap"><input class="inp has-sfx" type="number" id="expInflation" value="6.5" step="0.5" oninput="livePreview()" /><span class="sfx">%</span></div>
+              <div class="hint">How fast your expenses grow yearly</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A5: EMIs -->
+      <div class="acc-item" id="acc-emi">
+        <div class="acc-header" onclick="toggleAcc('acc-emi')">
+          <div class="acc-header-left">
+            <div class="acc-num">5</div>
+            <div>
+              <div class="acc-title">EMIs &amp; Loans</div>
+              <div class="acc-subtitle">Fixed monthly obligations — don't inflate</div>
+            </div>
+          </div>
+          <span class="acc-chevron">▾</span>
+        </div>
+        <div class="acc-body">
+          <p style="font-size:12px;color:#64748b;margin-bottom:16px">EMIs are constant (not inflated). Enter what you currently pay per month. Enter 0 if none.</p>
+          <div class="field-grid" style="grid-template-columns: 1fr 1fr 120px; gap:14px;">
+            <div class="field"><label>Home Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_home" value="0" oninput="livePreview()" /></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end">
+              <div class="field"><label>Remaining Tenure</label><div class="inp-wrap"><input class="inp has-sfx" type="number" id="emi_home_yrs" value="20" min="0" max="30" oninput="livePreview()" /><span class="sfx">yrs</span></div></div>
+            </div>
+            <div></div>
+            <div class="field"><label>Car Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_car" value="0" oninput="livePreview()" /></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end">
+              <div class="field"><label>Remaining Tenure</label><div class="inp-wrap"><input class="inp has-sfx" type="number" id="emi_car_yrs" value="3" min="0" max="10" oninput="livePreview()" /><span class="sfx">yrs</span></div></div>
+            </div>
+            <div></div>
+            <div class="field"><label>Other Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_other" value="0" oninput="livePreview()" /></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end">
+              <div class="field"><label>Remaining Tenure</label><div class="inp-wrap"><input class="inp has-sfx" type="number" id="emi_other_yrs" value="2" min="0" max="10" oninput="livePreview()" /><span class="sfx">yrs</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A6: FAMILY -->
+      <div class="acc-item" id="acc-family">
+        <div class="acc-header" onclick="toggleAcc('acc-family')">
+          <div class="acc-header-left">
+            <div class="acc-num">6</div>
+            <div>
+              <div class="acc-title">Family Planning</div>
+              <div class="acc-subtitle">Kids costs, career breaks</div>
+            </div>
+          </div>
+          <span class="acc-chevron">▾</span>
+        </div>
+        <div class="acc-body">
+          <div style="margin-bottom:16px">
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Number of Children</label>
+            <div class="toggle-group">
+              <button class="kids-btn active" id="kids-0" onclick="setKids(0)">No Kids<br><span style="font-size:10px;font-weight:400;color:#94a3b8">DINK baseline</span></button>
+              <button class="kids-btn" id="kids-1" onclick="setKids(1)">1 Child<br><span style="font-size:10px;font-weight:400;color:#94a3b8">+~₹3L/yr</span></button>
+              <button class="kids-btn" id="kids-2" onclick="setKids(2)">2 Children<br><span style="font-size:10px;font-weight:400;color:#94a3b8">+~₹5.5L/yr</span></button>
+            </div>
+          </div>
+          <div id="kids-details" style="display:none">
+            <div class="field-grid field-grid-2" style="margin-bottom:14px">
+              <div class="field" id="child1-wrap">
+                <label>Child 1 — Annual Cost (today's ₹)</label>
+                <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="child1_cost" value="300000" oninput="livePreview()" /></div>
+                <div class="hint">Daycare, school fees, activities, supplies</div>
+              </div>
+              <div class="field" id="child2-wrap" style="display:none">
+                <label>Child 2 — Annual Cost (today's ₹)</label>
+                <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="child2_cost" value="250000" oninput="livePreview()" /></div>
+                <div class="hint">2nd child typically costs a bit less</div>
+              </div>
+              <div class="field">
+                <label>Child Education Inflation</label>
+                <div class="inp-wrap"><input class="inp has-sfx" type="number" id="kidsInflation" value="8" step="0.5" oninput="livePreview()" /><span class="sfx">%</span></div>
+                <div class="hint">Education inflation runs 8–10% historically</div>
+              </div>
+            </div>
+            <div style="background:#f8fafc;border-radius:10px;padding:14px">
+              <div class="sw-row" style="margin-bottom:0">
+                <div>
+                  <div class="sw-row-label">Career break for child</div>
+                  <div class="sw-row-sub">One person's income drops to ₹0 for a period</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="careerBreak" onchange="toggleCareerBreak()" /><span class="switch-slider"></span></label>
+              </div>
+              <div id="career-break-fields" style="display:none;margin-top:14px">
+                <div class="field-grid field-grid-3">
+                  <div class="field">
+                    <label>Starting Year</label>
+                    <input class="inp" type="number" id="breakYear" value="1" min="1" max="25" oninput="livePreview()" />
+                    <div class="hint">Year 1 = this year</div>
+                  </div>
+                  <div class="field">
+                    <label>Duration</label>
+                    <div class="inp-wrap"><input class="inp has-sfx" type="number" id="breakDuration" value="1" min="1" max="3" oninput="livePreview()" /><span class="sfx">yrs</span></div>
+                  </div>
+                  <div class="field">
+                    <label>Whose income pauses?</label>
+                    <select class="inp" id="breakPerson" onchange="livePreview()">
+                      <option value="lower">Lower earner</option>
+                      <option value="higher">Higher earner</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="kids-note" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-top:12px">
+            No kids: 100% of savings goes into investments — the classic DINK advantage.
+          </div>
+        </div>
+      </div>
+
+
+    </div><!-- end accordion -->
+
+    <!-- SAVINGS PREVIEW — shows after filling income & expenses -->
+    <div class="preview-bar" id="preview-bar" style="margin-top:20px">
+      <div class="preview-item">
+        <div class="pb-label">Estimated Year 1 Savings</div>
+        <div class="pb-value" id="prev-savings">₹—</div>
+        <div class="pb-detail" id="prev-savings-sub">Fill in income &amp; expenses above</div>
+      </div>
+      <div class="preview-divider"></div>
+      <div class="preview-item">
+        <div class="pb-label">Monthly SIP Capacity</div>
+        <div class="pb-value" id="prev-sip">₹—</div>
+        <div class="pb-detail" id="prev-sip-sub">per month</div>
+      </div>
+      <div class="preview-divider"></div>
+      <div class="preview-item">
+        <div class="pb-label">Savings Rate</div>
+        <div class="pb-value" id="prev-rate">—</div>
+        <div class="pb-detail" id="prev-rate-sub">of net income</div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+    <button class="compute-btn" onclick="compute()">How soon is my Crore? →</button>
+
+    <div style="text-align:center;margin-top:28px;font-size:12px;color:#94a3b8">
+      Made with love by <a href="https://www.instagram.com/prakhar.vc/" target="_blank" rel="noopener" style="color:#16a34a;font-weight:600;text-decoration:none">Prakhar</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- PAGE 2: RESULTS                                                   -->
+<!-- ================================================================ -->
+<div id="page-results" class="page">
+  <div class="results-wrap">
+
+    <div class="results-topbar">
+      <button class="back-btn" onclick="goBack()">← Edit Inputs</button>
+      <div class="results-title">Your CroreSoon Plan</div>
+      <div style="font-size:12px;color:#94a3b8" id="results-date"></div>
+    </div>
+
+    <!-- GOAL BADGE -->
+    <div id="goal-badge"></div>
+
+    <!-- ASSUMPTIONS SUMMARY -->
+    <div class="assumptions-card">
+      <h4>Calculated with these assumptions</h4>
+      <div class="assumptions-pills" id="assumptions-pills"></div>
+    </div>
+
+
+<!-- WHAT-IF SLIDERS -->
+    <div class="whatif-card">
+      <h4>What If? <span>Adjust and watch the chart update live</span></h4>
+      <div class="slider-row">
+        <div class="slider-label">Expected Return (pre-tax)</div>
+        <input type="range" id="sl-base-ret" min="4" max="18" step="0.5" value="10" oninput="onSlider()" />
+        <div class="slider-val" id="sl-base-val">10%</div>
+      </div>
+    </div>
+
+    <!-- WARNINGS -->
+    <div id="warnings-wrap"></div>
+
+    <!-- CHART -->
+    <div class="chart-card">
+      <h4>Corpus Growth Over Time</h4>
+      <canvas id="corpusChart" height="200"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div> Projected corpus (<span id="leg-base">9.1</span>% post-LTCG)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:0;height:2px;width:12px;margin:4px 0"></div> Your target</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h4 style="margin:0">Year-by-Year Breakdown</h4>
+        <button onclick="downloadExcel()" style="display:flex;align-items:center;gap:6px;background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Excel
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left">Year</th>
+            <th>Age</th>
+            <th>Gross Income</th>
+            <th>Tax</th>
+            <th>Net Income</th>
+            <th>Expenses</th>
+            <th>Savings</th>
+            <th>Corpus</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This tool is for planning and educational purposes only. Projections are based on the assumptions entered and do not guarantee future returns. India New Tax Regime (FY26), LTCG 12.5% above ₹1.25L exemption (Budget 2024), standard deduction ₹75,000. Not financial advice. Past returns are not indicative of future performance.
+    </div>
+
+    <div style="text-align:center;margin-top:20px;font-size:12px;color:#94a3b8">
+      Made with love by <a href="https://www.instagram.com/prakhar.vc/" target="_blank" rel="noopener" style="color:#16a34a;font-weight:600;text-decoration:none">Prakhar</a>
+    </div>
+
+  </div>
+</div><!-- end page-results -->
+
+<script>
+// ──────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────
+const S = { type: 'couple', kids: 0, years: 10 };
+let chart = null;
+
+// ──────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const v = id => { const e = $(id); return e ? parseFloat(e.value) || 0 : 0; };
+
+function fmt(n) {
+  if (isNaN(n) || n === null) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 10000000) return '₹' + (n/10000000).toFixed(2) + 'Cr';
+  if (abs >= 100000)   return '₹' + (n/100000).toFixed(2) + 'L';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+function fmtS(n) {
+  if (isNaN(n) || n === null) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 10000000) return '₹' + (n/10000000).toFixed(1) + 'Cr';
+  if (abs >= 100000)   return '₹' + (n/100000).toFixed(1) + 'L';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+function pct(n) { return (n*100).toFixed(1) + '%'; }
+
+// ──────────────────────────────────────────────
+// TAX — India New Regime FY26
+// Standard deduction ₹75k | Cess 4% | Rebate ≤₹12L taxable
+// ──────────────────────────────────────────────
+function calcTax(gross) {
+  if (gross <= 0) return 0;
+  const taxable = Math.max(0, gross - 75000);
+  const slabs = [[400000,0],[400000,.05],[400000,.10],[400000,.15],[400000,.20],[400000,.25],[Infinity,.30]];
+  let tax = 0, rem = taxable;
+  for (const [s, r] of slabs) { if (rem <= 0) break; const c = Math.min(rem, s); tax += c*r; rem -= c; }
+  if (taxable <= 1200000) tax = 0; // Rebate 87A
+  return tax * 1.04; // 4% cess
+}
+
+// LTCG post-tax effective return
+function postLTCG(r) { return r * (1 - 0.125 * 0.7); }
+
+// ──────────────────────────────────────────────
+// PROJECTION ENGINE
+// ──────────────────────────────────────────────
+function project(overrides = {}) {
+  const years    = parseInt($('projYears').value) || 10;
+  const inc1     = v('inc1');
+  const inc2     = S.type === 'couple' ? v('inc2') : 0;
+  const incGrR   = v('incGrowth') / 100;
+  const age      = v('age');
+
+  // Expenses
+  const mBase = (v('exp_rent') + v('exp_grocery') + v('exp_eat') + v('exp_transport') +
+                 v('exp_util') + v('exp_subs') + v('exp_help') + v('exp_parents') +
+                 v('exp_other_m')) * 12;
+  const aBase = v('exp_vacation') + v('exp_health') + v('exp_life') +
+                v('exp_gifts') + v('exp_other_a');
+  const expInflR  = v('expInflation') / 100;
+  const kidsInflR = v('kidsInflation') / 100;
+  const genInflR  = v('genInflation') / 100;
+
+  // Returns — allow slider overrides
+  const baseRetR = postLTCG((overrides.baseRet ?? v('baseReturn')) / 100);
+
+  // EMIs
+  const emiRows = [
+    { monthly: v('emi_home'),  yrs: v('emi_home_yrs') },
+    { monthly: v('emi_car'),   yrs: v('emi_car_yrs')  },
+    { monthly: v('emi_other'), yrs: v('emi_other_yrs') }
+  ];
+
+  // Kids
+  const child1 = S.kids >= 1 ? v('child1_cost') : 0;
+  const child2 = S.kids >= 2 ? v('child2_cost') : 0;
+
+  // Career break
+  const hasBreak = $('careerBreak')?.checked && S.kids > 0;
+  const breakYr  = hasBreak ? Math.round(v('breakYear'))    : 0;
+  const breakDur = hasBreak ? Math.round(v('breakDuration')) : 0;
+  const breakWho = $('breakPerson')?.value || 'lower';
+
+  let corpusBase = Math.max(0, v('startCorpus'));
+  const rows = [];
+
+  for (let yr = 1; yr <= years; yr++) {
+    let g1 = inc1 * Math.pow(1 + incGrR, yr - 1);
+    let g2 = inc2 * Math.pow(1 + incGrR, yr - 1);
+
+    // Career break
+    if (hasBreak && yr >= breakYr && yr < breakYr + breakDur) {
+      if (breakWho === 'lower') { if (g1 <= g2) g1 = 0; else g2 = 0; }
+      else                      { if (g1 >= g2) g1 = 0; else g2 = 0; }
+    }
+
+    const gross    = g1 + g2;
+    const tax      = calcTax(g1) + calcTax(g2);
+    const netInc   = gross - tax;
+
+    // Expenses (inflating)
+    const ef       = Math.pow(1 + expInflR, yr - 1);
+    const expLive  = (mBase + aBase) * ef;
+
+    // EMIs (fixed, stop when tenure ends)
+    const emiAnn   = emiRows.reduce((s, e) => s + (yr <= e.yrs ? e.monthly * 12 : 0), 0);
+
+    // Kids (education inflation)
+    const kidsExp  = (child1 + child2) * Math.pow(1 + kidsInflR, yr - 1);
+
+    const totalExp = expLive + emiAnn + kidsExp;
+    let savings    = Math.max(0, netInc - totalExp);
+    const savRate  = netInc > 0 ? savings / netInc : 0;
+
+    // Corpus (mid-year deployment assumption)
+    const rBase    = corpusBase * baseRetR + savings * baseRetR * 0.5;
+    corpusBase     = Math.max(0, corpusBase + savings + rBase);
+
+    rows.push({ yr, age: age+yr, gross, tax, netInc, totalExp, emiAnn, kidsExp, savings, savRate,
+                corpusBase });
+  }
+  return { rows, baseRetR };
+}
+
+// ──────────────────────────────────────────────
+// LIVE PREVIEW (input page)
+// ──────────────────────────────────────────────
+function livePreview() {
+  try {
+    const { rows } = project();
+    const r = rows[0];
+    $('prev-savings').textContent = fmtS(r.savings);
+    $('prev-savings').className   = 'pb-value' + (r.savings < 0 ? ' pb-warn' : '');
+    $('prev-sip').textContent     = fmtS(r.savings / 12);
+    $('prev-rate').textContent    = pct(r.savRate);
+    $('prev-savings-sub').textContent = `Net income: ${fmtS(r.netInc)} · Tax: ${fmtS(r.tax)}`;
+    $('prev-sip-sub').textContent = 'per month';
+    $('prev-rate-sub').textContent = r.savRate < 0.3 ? '⚠ Low — aim for 40%+' : r.savRate >= 0.5 ? '✓ Excellent' : '✓ Good';
+  } catch(e) {}
+}
+
+// ──────────────────────────────────────────────
+// COMPUTE — switch to results page
+// ──────────────────────────────────────────────
+function compute() {
+  // Sync sliders to current input values
+  $('sl-base-ret').value = v('baseReturn');
+  $('sl-base-val').textContent = v('baseReturn') + '%';
+
+  renderResults();
+  showPage('results');
+}
+
+// ──────────────────────────────────────────────
+// SLIDER HANDLER
+// ──────────────────────────────────────────────
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  if (!canvas) return;
+  canvas.width = canvas.offsetWidth || 800;
+  canvas.height = canvas.offsetHeight || 200;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#16a34a','#4ade80','#fbbf24','#60a5fa','#f472b6','#a78bfa'];
+  const pieces = Array.from({length: 100}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 5 + 3,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speed: Math.random() * 2.5 + 1.5,
+    angle: Math.random() * Math.PI * 2,
+    spin: (Math.random() - 0.5) * 0.15,
+    wobble: Math.random() * Math.PI * 2
+  }));
+  let frame, tick = 0;
+  function draw() {
+    tick++;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.y += p.speed;
+      p.wobble += 0.05;
+      p.angle += p.spin;
+      const wx = p.x + Math.sin(p.wobble) * 2;
+      ctx.save();
+      ctx.translate(wx, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      ctx.restore();
+    });
+    if (tick < 220) frame = requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+function onSlider() {
+  const br = parseFloat($('sl-base-ret').value);
+  $('sl-base-val').textContent = br + '%';
+  $('baseReturn').value = br;
+  renderResults(true);
+}
+
+// ──────────────────────────────────────────────
+// RENDER RESULTS
+// ──────────────────────────────────────────────
+function renderResults(silent = false) {
+  const { rows, baseRetR } = project();
+  const goalCorpus = v('goalCorpus');
+  const genInflR   = v('genInflation') / 100;
+  const projYears  = parseInt($('projYears').value) || 10;
+  const r1   = rows[0];
+  const rEnd = rows[rows.length - 1];
+
+  // Date
+  $('results-date').textContent = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+
+  // Goal badge
+  const hit = rEnd.corpusBase >= goalCorpus;
+  const badge = $('goal-badge');
+  const hitRow = rows.find(r => r.corpusBase >= goalCorpus);
+  const hitYear = hitRow ? hitRow.yr : null;
+  const rateLabel = r1.savRate >= 0.5 ? '🔥 Excellent' : r1.savRate >= 0.35 ? '✓ Good' : '⚠ Low';
+  const totalContributed = rows.reduce((s, r) => s + r.savings, 0) + v('startCorpus');
+  const returnsEarned = rEnd.corpusBase - totalContributed;
+
+  if (hit) {
+    badge.className = 'goal-hit';
+    badge.innerHTML = `
+      <canvas id="confetti-canvas"></canvas>
+      <div class="goal-badge-icon">🎯</div>
+      <div class="goal-badge-title" style="color:#15803d">You'll hit your ${fmtS(goalCorpus)} goal in Year ${hitYear}!</div>
+      <div class="goal-badge-stats">
+        <div class="gbs-item"><div class="gbs-label">Projected Corpus</div><div class="gbs-val green">${fmtS(rEnd.corpusBase)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Surplus</div><div class="gbs-val green">${fmtS(rEnd.corpusBase - goalCorpus)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Goal Hit</div><div class="gbs-val">Year ${hitYear} · Age ${v('age') + hitYear}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Total You'll Invest</div><div class="gbs-val">${fmtS(totalContributed)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Returns Earned</div><div class="gbs-val green">${fmtS(returnsEarned)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Savings Rate</div><div class="gbs-val">${pct(r1.savRate)} ${rateLabel}</div></div>
+      </div>`;
+    launchConfetti();
+  } else {
+    // Calculate suggestions
+    let extraYrs = 0;
+    let c = rEnd.corpusBase;
+    const lastSav = rows[rows.length - 1].savings;
+    for (let i = 1; i <= 30; i++) {
+      c = c * (1 + baseRetR) + lastSav * (1 + baseRetR) * 0.5 + lastSav;
+      if (c >= goalCorpus) { extraYrs = i; break; }
+    }
+    const shortfall = goalCorpus - rEnd.corpusBase;
+    const r = baseRetR;
+    const n = projYears;
+    const extraMonthlySav = shortfall * r / (Math.pow(1 + r, n) - 1) / 12;
+
+    badge.className = 'goal-miss';
+    badge.innerHTML = `
+      <div class="goal-badge-icon">📉</div>
+      <div class="goal-badge-title" style="color:#dc2626">You won't reach ${fmtS(goalCorpus)} in ${projYears} years</div>
+      <div class="goal-badge-stats">
+        <div class="gbs-item"><div class="gbs-label">Projected Corpus</div><div class="gbs-val red">${fmtS(rEnd.corpusBase)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Shortfall</div><div class="gbs-val red">${fmtS(shortfall)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">At Current Pace</div><div class="gbs-val">${extraYrs ? `${projYears + extraYrs} yrs total` : '30+ yrs'}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Total You'll Invest</div><div class="gbs-val">${fmtS(totalContributed)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Returns Earned</div><div class="gbs-val red">${fmtS(returnsEarned)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Savings Rate</div><div class="gbs-val red">${pct(r1.savRate)} ${rateLabel}</div></div>
+      </div>
+      <div class="goal-suggestions">
+        <div class="goal-suggestions-title">Here's how to close the gap</div>
+        ${extraYrs ? `<div class="sug-item"><div class="sug-icon">⏱</div><div>Extend your timeline by <strong>${extraYrs} more years</strong> — you'll reach ${fmtS(goalCorpus)} at age ${Math.round(v('age') + projYears + extraYrs)}</div></div>` : ''}
+        <div class="sug-item"><div class="sug-icon">💰</div><div>Save <strong>${fmtS(extraMonthlySav)} more per month</strong> — that's an extra ${fmtS(extraMonthlySav * 12)}/yr invested</div></div>
+        <div class="sug-item"><div class="sug-icon">📉</div><div>Cut monthly expenses by <strong>${fmtS(extraMonthlySav)}</strong> — review Rent, Eating Out, and subscriptions first</div></div>
+        <div class="sug-item"><div class="sug-icon">📈</div><div>Use the <strong>What-If slider below</strong> to see how a higher return rate changes your outcome</div></div>
+      </div>`;
+  }
+
+  // Assumptions pills
+  const pills = [
+    `Income: ${fmtS(v('inc1'))}${S.type==='couple'?' + '+fmtS(v('inc2')):''}`,
+    `Growth: ${v('incGrowth')}%/yr`,
+    `Savings rate: ${pct(r1.savRate)} (computed)`,
+    `Return: ${v('baseReturn')}% pre-tax (${(baseRetR*100).toFixed(1)}% post-LTCG)`,
+    `Inflation: ${v('genInflation')}%`,
+    `Exp. inflation: ${v('expInflation')}%`,
+    `${projYears} years · Age ${v('age')}→${v('age')+projYears}`,
+    S.kids === 0 ? 'No kids' : S.kids === 1 ? '1 child' : '2 children',
+  ];
+  if (v('emi_home') > 0) pills.push(`Home EMI: ${fmtS(v('emi_home'))}/mo`);
+  if (v('emi_car') > 0)  pills.push(`Car EMI: ${fmtS(v('emi_car'))}/mo`);
+  $('assumptions-pills').innerHTML = pills.map(p => `<div class="pill">${p}</div>`).join('');
+
+  // Legend
+  $('leg-base').textContent = (baseRetR*100).toFixed(1);
+
+  // Warnings
+  const warns = [];
+  if (r1.savRate < 0.3) warns.push('Your Year 1 savings rate is below 30%. Consider reducing expenses or increasing income.');
+  if (r1.emiAnn / r1.netInc > 0.4) warns.push('EMIs exceed 40% of net income — this is a high debt burden.');
+  if (r1.savings <= 0) warns.push('🚨 No savings in Year 1! Expenses exceed income. Review your numbers.');
+  $('warnings-wrap').innerHTML = warns.map(w => `<div class="warn-box">⚠ ${w}</div>`).join('');
+
+  // Chart
+  const labels   = rows.map(r => `Yr ${r.yr}`);
+  const baseData = rows.map(r => r.corpusBase);
+  const targetD  = rows.map(() => goalCorpus);
+
+  if (chart) chart.destroy();
+  chart = new Chart($('corpusChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Base', data: baseData, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)',
+          fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 6 },
+        { label: 'Target', data: targetD, borderColor: '#ef4444', borderDash: [6,4],
+          fill: false, tension: 0, borderWidth: 1.5, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtS(c.parsed.y)}` } }
+      },
+      scales: {
+        y: { ticks: { callback: v => fmtS(v), font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Table
+  $('results-tbody').innerHTML = rows.map(r => `
+    <tr>
+      <td>Year ${r.yr}</td>
+      <td class="td-muted">${r.age}</td>
+      <td>${fmtS(r.gross)}</td>
+      <td class="td-red">${fmtS(r.tax)}</td>
+      <td>${fmtS(r.netInc)}</td>
+      <td>${fmtS(r.totalExp)}</td>
+      <td class="td-green">${fmtS(r.savings)}</td>
+      <td class="td-green">${fmtS(r.corpusBase)}</td>
+    </tr>`).join('');
+}
+
+// ──────────────────────────────────────────────
+// PAGE NAVIGATION
+// ──────────────────────────────────────────────
+function downloadExcel() {
+  const { baseRetR } = project();
+  const projYears = parseInt($('projYears').value) || 10;
+  const isCouple  = S.type === 'couple';
+  const wb = XLSX.utils.book_new();
+
+  // helpers
+  const F  = f => ({ f, t: 'n' });                        // number formula cell
+  const Fp = f => ({ f, t: 'n', z: '0.00%' });            // percent formula cell
+  const FC = f => ({ f, t: 'n', z: '##,##,##,##0' });     // INR currency formula cell
+  const FP1= f => ({ f, t: 'n', z: '0.0%' });             // percent 1-decimal formula cell
+  const ab = r => `Assumptions!$B$${r}`;                   // absolute ref into Assumptions col B
+
+  // row indices for cross-sheet refs
+  const lastTaxR = 3 + projYears;   // Tax Computation last data row
+  const lastCfR  = 3 + projYears;   // Annual Cashflow last data row
+  const lastCorR = 5 + projYears;   // Corpus Growth last data row
+
+  // ═══════════════════════════════════════════════
+  // SHEET 1 — DASHBOARD  (summary view, formulas ref other sheets)
+  // ═══════════════════════════════════════════════
+  const inc1L = Math.round(v('inc1') / 100000);
+  const inc2L = Math.round(v('inc2') / 100000);
+  const subtitle = isCouple
+    ? `You (₹${inc1L}L) + Spouse (₹${inc2L}L)  |  Tax: Individual Filing  |  Age ${v('age')}→${v('age') + projYears}`
+    : `You (₹${inc1L}L)  |  Tax: Individual Filing  |  Age ${v('age')}→${v('age') + projYears}`;
+
+  const dashRows = [
+    // Row 1: Title
+    [{ v: `FINANCIAL DASHBOARD (v1 — Year 1 Snapshot)`, t: 's' }],
+    // Row 2: Subtitle
+    [subtitle],
+    // Row 3: blank
+    [],
+    // Row 4: Section headers (A + E)
+    ['YEAR 1 SNAPSHOT', '', '', '', `${projYears}-YEAR OUTCOME`, ''],
+    // Row 5-12: two-column data side by side
+    ['Combined Gross Income',    FC(`'Tax Computation'!I4`),  '', '', 'Target Corpus',                      FC(ab(11))                                  ],
+    ['Total Tax (Ind. Filing)',  FC(`'Tax Computation'!J4`),  '', '', 'Projected Corpus',                   FC(`'Corpus Growth'!G${lastCorR}`)          ],
+    ['Effective Tax Rate',       FP1(`'Tax Computation'!K4`), '', '', 'Surplus / (Deficit)',                FC(`'Corpus Growth'!I${lastCorR}`)          ],
+    ['Net Income (Post-Tax)',    FC(`'Tax Computation'!L4`),  '', '', `Year ${projYears} Gross Income`,     FC(`'Tax Computation'!I${lastTaxR}`)        ],
+    ['Total Expenses (Year 1)',  FC(`'Annual Cashflow'!G4`),  '', '', `Year ${projYears} Net Income`,       FC(`'Tax Computation'!L${lastTaxR}`)        ],
+    ['Annual Savings (Year 1)',  FC(`'Annual Cashflow'!H4`),  '', '', `Year ${projYears} Living Expenses`,  FC(`'Annual Cashflow'!D${lastCfR}`)         ],
+    ['Monthly SIP (Year 1)',     FC(`'Annual Cashflow'!I4`),  '', '', `Year ${projYears} Annual Savings`,   FC(`'Annual Cashflow'!H${lastCfR}`)         ],
+    ['Savings Rate (Year 1)',    FP1(`'Annual Cashflow'!J4`), '', '', `Year ${projYears} Monthly SIP`,      FC(`'Annual Cashflow'!I${lastCfR}`)         ],
+    // Row 13-14: blank
+    [], [],
+    // Row 15: HOW TO CUSTOMIZE header
+    ['HOW TO CUSTOMIZE'],
+    ['→ Change any value in the Assumptions sheet — all other sheets recalculate automatically'],
+    ['→ Tax is computed individually (you + spouse) under the New Regime FY26'],
+    ['→ Expenses grow at the inflation rate set in Assumptions → Expense Inflation Rate'],
+    ['→ EMIs automatically stop when their remaining years (set in Assumptions) expire'],
+    ['→ Kids expenses grow at kids inflation rate each year'],
+    ['→ Corpus uses post-LTCG-adjusted returns with mid-year deployment for new savings'],
+    ['→ Try changing income growth rate to see how faster raises accelerate your goal'],
+  ];
+
+  const ws0 = XLSX.utils.aoa_to_sheet(dashRows);
+  ws0['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 3 }, { wch: 3 }, { wch: 28 }, { wch: 18 }];
+  XLSX.utils.book_append_sheet(wb, ws0, 'Dashboard');
+
+  // ═══════════════════════════════════════════════
+  // SHEET 2 — ASSUMPTIONS  (all editable seed values)
+  // Row map (1-indexed Excel rows):
+  //  5=P1income  6=P2income  7=combined  8=incGrowth  9=age  10=years  11=target  12=startCorpus
+  //  15=stdDed   16=cess
+  //  19-27=monthly expenses  28=totalMonthly
+  //  31-35=annual expenses   36=totalAnnual
+  //  39=emiHome  40=emiHomeYrs  41=emiCar  42=emiCarYrs  43=emiOther  44=emiOtherYrs
+  //  47=child1   48=child2   49=kidsInfl
+  //  52=pretaxRet  53=ltcgRate  54=ltcgExempt  55=postTaxRet
+  //  58=expInfl
+  // ═══════════════════════════════════════════════
+  const asmMap = {};
+  const setA = (row, ...cols) => { asmMap[row] = cols; };
+  const dt = new Date().toLocaleDateString('en-IN');
+
+  setA(1,  'CroreSoon Financial Model', '', `Generated ${dt}`);
+  setA(2,  'Edit values in column B — all other sheets recalculate automatically', '', '');
+  setA(4,  '── INCOME ──');
+  setA(5,  'Person 1 Annual Income (Rs)',      v('inc1'));
+  setA(6,  'Person 2 Annual Income (Rs)',      isCouple ? v('inc2') : 0, isCouple ? '' : '0 = single filing');
+  setA(7,  'Combined Gross Income (Rs)',       F('B5+B6'),                   'Auto');
+  setA(8,  'Annual Income Growth Rate',        v('incGrowth') / 100,         `${v('incGrowth')}%/yr`);
+  setA(9,  'Starting Age',                     v('age'));
+  setA(10, 'Projection Period (Years)',        projYears);
+  setA(11, 'Target Corpus (Rs)',               v('goalCorpus'));
+  setA(12, 'Starting Corpus (Rs)',             v('startCorpus'));
+  setA(14, '── TAX — New Regime FY26 ──');
+  setA(15, 'Standard Deduction (Rs)',          75000,   'FY26');
+  setA(16, 'Cess Rate',                        0.04,    '4%');
+  setA(18, '── MONTHLY EXPENSES — Year 1 (Rs/month) ──');
+  setA(19, 'Rent / Housing',                   v('exp_rent'));
+  setA(20, 'Groceries',                        v('exp_grocery'));
+  setA(21, 'Eating Out & Delivery',            v('exp_eat'));
+  setA(22, 'Transport & Fuel',                 v('exp_transport'));
+  setA(23, 'Utilities & Internet',             v('exp_util'));
+  setA(24, 'Subscriptions & OTT',              v('exp_subs'));
+  setA(25, 'Domestic Help / Maid',             v('exp_help'));
+  setA(26, 'Parental Support',                 v('exp_parents'));
+  setA(27, 'Other Monthly',                    v('exp_other_m'));
+  setA(28, 'Total Monthly (Rs)',               F('SUM(B19:B27)'),             'Auto');
+  setA(30, '── ANNUAL EXPENSES — Year 1 (Rs/year) ──');
+  setA(31, 'Vacation',                         v('exp_vacation'));
+  setA(32, 'Health Insurance',                 v('exp_health'));
+  setA(33, 'Life Insurance',                   v('exp_life'));
+  setA(34, 'Gifts & Events',                   v('exp_gifts'));
+  setA(35, 'Other Annual',                     v('exp_other_a'));
+  setA(36, 'Total Annual Expenses — Year 1 (Rs)', F('B28*12+SUM(B31:B35)'), 'Auto');
+  setA(38, '── EMIs ──');
+  setA(39, 'Home Loan EMI (Rs/month)',         v('emi_home'));
+  setA(40, 'Home EMI Remaining (years)',       v('emi_home_yrs'));
+  setA(41, 'Car Loan EMI (Rs/month)',          v('emi_car'));
+  setA(42, 'Car EMI Remaining (years)',        v('emi_car_yrs'));
+  setA(43, 'Other EMI (Rs/month)',             v('emi_other'));
+  setA(44, 'Other EMI Remaining (years)',      v('emi_other_yrs'));
+  setA(46, '── KIDS EXPENSES ──');
+  setA(47, "Child 1 Annual Cost (today's Rs)", S.kids >= 1 ? v('child1_cost') : 0);
+  setA(48, "Child 2 Annual Cost (today's Rs)", S.kids >= 2 ? v('child2_cost') : 0);
+  setA(49, 'Kids Expense Inflation Rate',      v('kidsInflation') / 100, `${v('kidsInflation')}%/yr`);
+  setA(51, '── INVESTMENT RETURNS ──');
+  setA(52, 'Pre-tax Annual Return',            v('baseReturn') / 100,        `${v('baseReturn')}% gross`);
+  setA(53, 'LTCG Tax Rate',                    0.125,                        '12.5% Budget 2024');
+  setA(54, 'LTCG Exemption (Rs/year)',         125000,                       'Rs 1.25L exempt/yr');
+  setA(55, 'Effective Post-Tax Return (approx)', F('B52*(1-B53*0.7)'),      '~70% of gains exceed exemption');
+  setA(57, '── INFLATION ──');
+  setA(58, 'Expense Inflation Rate',           v('expInflation') / 100,      `${v('expInflation')}%/yr`);
+
+  const maxAsmRow = Math.max(...Object.keys(asmMap).map(Number));
+  const asmRows = [];
+  for (let i = 1; i <= maxAsmRow; i++) asmRows.push(asmMap[i] || []);
+  const ws1 = XLSX.utils.aoa_to_sheet(asmRows);
+  ws1['!cols'] = [{ wch: 36 }, { wch: 18 }, { wch: 32 }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Assumptions');
+
+  // ═══════════════════════════════════════════════
+  // SHEET 3 — TAX COMPUTATION
+  // Data rows start at Excel row 4 (aoa index 3)
+  // Cols: A=Year B=Age C=P1Gross D=P1Taxable E=P1Tax F=P2Gross G=P2Taxable H=P2Tax I=CombGross J=TotalTax K=EffRate L=NetIncome
+  // ═══════════════════════════════════════════════
+  const slab = (col, cess) =>
+    `(IF(${col}<=400000,0,IF(${col}<=800000,(${col}-400000)*0.05,` +
+    `IF(${col}<=1200000,20000+(${col}-800000)*0.1,` +
+    `IF(${col}<=1600000,60000+(${col}-1200000)*0.15,` +
+    `IF(${col}<=2000000,120000+(${col}-1600000)*0.2,` +
+    `IF(${col}<=2400000,200000+(${col}-2000000)*0.25,` +
+    `300000+(${col}-2400000)*0.3))))))*(1+${cess}))`;
+
+  const taxRows = [
+    ['Tax Computation — Individual Filing (New Regime FY26)'],
+    [],
+    ['Year','Age','P1 Gross (Rs)','P1 Taxable (Rs)','P1 Tax (Rs)','P2 Gross (Rs)','P2 Taxable (Rs)','P2 Tax (Rs)','Combined Gross (Rs)','Total Tax (Rs)','Eff. Rate','Net Income (Rs)']
+  ];
+  for (let yr = 1; yr <= projYears; yr++) {
+    const r = 3 + yr;  const pr = r - 1;
+    const p1g = yr === 1 ? ab(5) : `C${pr}*(1+${ab(8)})`;
+    const p2g = yr === 1 ? ab(6) : `F${pr}*(1+${ab(8)})`;
+    taxRows.push([
+      yr,
+      F(`${ab(9)}+${yr - 1}`),
+      F(p1g),
+      F(`MAX(C${r}-${ab(15)},0)`),
+      F(slab(`D${r}`, ab(16))),
+      F(p2g),
+      F(`MAX(F${r}-${ab(15)},0)`),
+      F(slab(`G${r}`, ab(16))),
+      F(`C${r}+F${r}`),
+      F(`E${r}+H${r}`),
+      Fp(`IF(I${r}=0,0,J${r}/I${r})`),
+      F(`I${r}-J${r}`)
+    ]);
+  }
+  const ws2 = XLSX.utils.aoa_to_sheet(taxRows);
+  ws2['!cols'] = [6,6,14,14,14,14,14,14,16,14,12,16].map(w => ({ wch: w }));
+  XLSX.utils.book_append_sheet(wb, ws2, 'Tax Computation');
+
+  // ═══════════════════════════════════════════════
+  // SHEET 4 — ANNUAL CASHFLOW
+  // Data rows start at Excel row 4 (aoa index 3)
+  // Cols: A=Year B=Age C=NetIncome D=LivingExp E=EMIs F=KidsExp G=TotalExp H=Savings I=MonthlySav J=SavRate
+  // ═══════════════════════════════════════════════
+  const cfRows = [
+    ['Annual Cashflow'],
+    [],
+    ['Year','Age','Net Income (Rs)','Living Expenses (Rs)','EMIs (Rs)','Kids Expenses (Rs)','Total Expenses (Rs)','Annual Savings (Rs)','Monthly Savings (Rs)','Savings Rate']
+  ];
+  for (let yr = 1; yr <= projYears; yr++) {
+    const r   = 3 + yr;  const pr = r - 1;
+    const tR  = 3 + yr;  // Tax Computation row for this year
+    const livingExp = yr === 1
+      ? ab(36)
+      : `D${pr}*(1+${ab(58)})`;
+    const emi =
+      `IF(A${r}<=${ab(40)},${ab(39)}*12,0)` +
+      `+IF(A${r}<=${ab(42)},${ab(41)}*12,0)` +
+      `+IF(A${r}<=${ab(44)},${ab(43)}*12,0)`;
+    const kids = `(${ab(47)}+${ab(48)})*(1+${ab(49)})^(A${r}-1)`;
+    cfRows.push([
+      yr,
+      F(`'Tax Computation'!B${tR}`),
+      F(`'Tax Computation'!L${tR}`),
+      F(livingExp),
+      F(emi),
+      F(kids),
+      F(`D${r}+E${r}+F${r}`),
+      F(`MAX(0,C${r}-G${r})`),
+      F(`H${r}/12`),
+      Fp(`IF(C${r}=0,0,H${r}/C${r})`)
+    ]);
+  }
+  const ws3 = XLSX.utils.aoa_to_sheet(cfRows);
+  ws3['!cols'] = [6,6,14,16,12,14,16,16,16,12].map(w => ({ wch: w }));
+  XLSX.utils.book_append_sheet(wb, ws3, 'Annual Cashflow');
+
+  // ═══════════════════════════════════════════════
+  // SHEET 5 — CORPUS GROWTH
+  // Data rows start at Excel row 6 (aoa index 5)
+  // Cols: A=Year B=Age C=Opening D=AnnSav E=RetCorpus F=RetNew G=Closing H=Target I=Surplus
+  // ═══════════════════════════════════════════════
+  const corpRows = [
+    ['Corpus Growth — Post-LTCG Adjusted Returns'],
+    [`Effective return formula: =${ab(55).replace('Assumptions!','')} (pre-tax return x (1 - LTCG x 0.7))`],
+    ['Mid-year deployment: new savings earn half a year of returns in the year invested'],
+    [],
+    ['Year','Age','Opening Corpus (Rs)','Annual Savings (Rs)','Return on Corpus (Rs)','Return on New Investment (Rs)','Closing Corpus (Rs)','Target (Rs)','Surplus / (Deficit) (Rs)']
+  ];
+  for (let yr = 1; yr <= projYears; yr++) {
+    const r  = 5 + yr;  const pr = r - 1;
+    const cfR = 3 + yr;  // Annual Cashflow row for this year
+    const opening = yr === 1 ? ab(12) : `G${pr}`;
+    corpRows.push([
+      yr,
+      F(`'Annual Cashflow'!B${cfR}`),
+      F(opening),
+      F(`'Annual Cashflow'!H${cfR}`),
+      F(`C${r}*${ab(55)}`),
+      F(`D${r}*${ab(55)}*0.5`),
+      F(`C${r}+D${r}+E${r}+F${r}`),
+      F(ab(11)),
+      F(`G${r}-H${r}`)
+    ]);
+  }
+  const ws4 = XLSX.utils.aoa_to_sheet(corpRows);
+  ws4['!cols'] = [6,6,18,16,18,22,18,14,20].map(w => ({ wch: w }));
+  XLSX.utils.book_append_sheet(wb, ws4, 'Corpus Growth');
+
+  XLSX.writeFile(wb, `CroreSoon_Plan_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $('page-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function goBack() { showPage('input'); }
+
+// ──────────────────────────────────────────────
+// ACCORDION
+// ──────────────────────────────────────────────
+function toggleAcc(id) {
+  const item = $(id);
+  const isOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('open'));
+  // Open clicked (unless it was already open)
+  if (!isOpen) item.classList.add('open');
+}
+
+// ──────────────────────────────────────────────
+// UI TOGGLES
+// ──────────────────────────────────────────────
+function setType(type) {
+  S.type = type;
+  $('btn-couple').classList.toggle('active', type === 'couple');
+  $('btn-solo').classList.toggle('active', type === 'solo');
+  $('inc2-wrap').style.display = type === 'couple' ? 'block' : 'none';
+  livePreview();
+}
+
+function setYears(y) {
+  S.years = y;
+  $('projYears').value = y;
+  document.querySelectorAll('.yr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === y + ' yrs'));
+  livePreview();
+}
+
+function setKids(n) {
+  S.kids = n;
+  [0,1,2].forEach(k => $('kids-'+k).classList.toggle('active', k === n));
+  $('kids-details').style.display = n > 0 ? 'block' : 'none';
+  $('kids-note').style.display    = n === 0 ? 'block' : 'none';
+  $('child2-wrap').style.display  = n >= 2 ? 'block' : 'none';
+  if (n >= 1) $('child1_cost').value = 300000;
+  if (n >= 2) $('child2_cost').value = 250000;
+  livePreview();
+}
+
+function toggleCareerBreak() {
+  $('career-break-fields').style.display = $('careerBreak').checked ? 'block' : 'none';
+  livePreview();
+}
+
+// ──────────────────────────────────────────────
+// SLIDER CONFIG — all numeric inputs → sliders
+// ──────────────────────────────────────────────
+const SLIDER_CFG = {
+  goalCorpus:    { min:1000000,  max:500000000, step:500000,  fmt:'inr' },
+  startCorpus:   { min:0,        max:100000000, step:100000,  fmt:'inr' },
+  inc1:          { min:300000,   max:10000000,  step:50000,   fmt:'inr' },
+  inc2:          { min:300000,   max:10000000,  step:50000,   fmt:'inr' },
+  age:           { min:22,       max:55,        step:1,       fmt:'num' },
+  incGrowth:     { min:0,        max:25,        step:0.5,     fmt:'pct' },
+  baseReturn:    { min:4,        max:20,        step:0.5,     fmt:'pct' },
+  genInflation:  { min:2,        max:12,        step:0.5,     fmt:'pct' },
+  exp_rent:      { min:0,        max:200000,    step:2500,    fmt:'inr' },
+  exp_grocery:   { min:0,        max:50000,     step:500,     fmt:'inr' },
+  exp_eat:       { min:0,        max:100000,    step:1000,    fmt:'inr' },
+  exp_transport: { min:0,        max:50000,     step:500,     fmt:'inr' },
+  exp_util:      { min:0,        max:20000,     step:500,     fmt:'inr' },
+  exp_subs:      { min:0,        max:10000,     step:500,     fmt:'inr' },
+  exp_help:      { min:0,        max:30000,     step:500,     fmt:'inr' },
+  exp_parents:   { min:0,        max:100000,    step:1000,    fmt:'inr' },
+  exp_other_m:   { min:0,        max:50000,     step:1000,    fmt:'inr' },
+  exp_vacation:  { min:0,        max:2000000,   step:25000,   fmt:'inr' },
+  exp_health:    { min:0,        max:100000,    step:2500,    fmt:'inr' },
+  exp_life:      { min:0,        max:200000,    step:5000,    fmt:'inr' },
+  exp_gifts:     { min:0,        max:500000,    step:10000,   fmt:'inr' },
+  exp_other_a:   { min:0,        max:500000,    step:10000,   fmt:'inr' },
+  expInflation:  { min:2,        max:15,        step:0.5,     fmt:'pct' },
+  emi_home:      { min:0,        max:200000,    step:5000,    fmt:'inr' },
+  emi_home_yrs:  { min:0,        max:30,        step:1,       fmt:'yrs' },
+  emi_car:       { min:0,        max:100000,    step:2500,    fmt:'inr' },
+  emi_car_yrs:   { min:0,        max:10,        step:1,       fmt:'yrs' },
+  emi_other:     { min:0,        max:50000,     step:1000,    fmt:'inr' },
+  emi_other_yrs: { min:0,        max:10,        step:1,       fmt:'yrs' },
+  child1_cost:   { min:50000,    max:2000000,   step:25000,   fmt:'inr' },
+  child2_cost:   { min:50000,    max:1500000,   step:25000,   fmt:'inr' },
+  kidsInflation: { min:4,        max:15,        step:0.5,     fmt:'pct' },
+  breakYear:     { min:1,        max:10,        step:1,       fmt:'num' },
+  breakDuration: { min:1,        max:3,         step:1,       fmt:'yrs' },
+};
+
+function fmtSlider(val, type) {
+  const n = parseFloat(val);
+  if (type === 'pct') return n + '%';
+  if (type === 'yrs') return n + (n === 1 ? ' yr' : ' yrs');
+  if (type === 'num') return String(n);
+  return fmt(n); // inr
+}
+
+function onFieldSlider(inp) {
+  const d = document.getElementById('d_' + inp.id);
+  if (d) d.textContent = fmtSlider(inp.value, inp.dataset.sfmt);
+  livePreview();
+}
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+function initFieldSliders() {
+  Object.entries(SLIDER_CFG).forEach(([id, cfg]) => {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    const rawVal = parseFloat(inp.value) || 0;
+    const val = Math.min(Math.max(rawVal, cfg.min), cfg.max);
+    const field = inp.closest('.field') || inp.closest('.goal-field');
+    if (!field) return;
+
+    // Grab label and hint text before clearing
+    const label = field.querySelector('label');
+    const existingHint = field.querySelector('.hint');
+    const hintText = existingHint ? existingHint.textContent : '';
+
+    // Convert input to range slider
+    inp.type = 'range';
+    inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step; inp.value = val;
+    inp.className = 'field-range';
+    inp.dataset.sfmt = cfg.fmt;
+    inp.oninput = function() { onFieldSlider(this); };
+
+    // Build header: label left, value right
+    const display = document.createElement('span');
+    display.className = 'slide-val';
+    display.id = 'd_' + id;
+    display.textContent = fmtSlider(val, cfg.fmt);
+
+    const header = document.createElement('div');
+    header.className = 'field-slide-header';
+    if (label) header.appendChild(label);
+    header.appendChild(display);
+
+    // Clear field and rebuild
+    while (field.firstChild) field.removeChild(field.firstChild);
+    field.appendChild(header);
+    field.appendChild(inp);
+    if (hintText) {
+      const h = document.createElement('div');
+      h.className = 'hint'; h.textContent = hintText;
+      field.appendChild(h);
+    }
+  });
+}
+
+window.addEventListener('load', () => { initFieldSliders(); livePreview(); });
+</script>
+</body>
+</html>
