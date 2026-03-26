@@ -71,15 +71,15 @@
     /* Savings Preview Bar */
     .preview-bar {
       background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-      padding: 14px 20px; margin-bottom: 20px;
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      padding: 14px 16px; margin-bottom: 20px;
+      display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 0;
     }
-    .preview-bar .pb-label { font-size: 12px; color: #64748b; font-weight: 500; }
-    .preview-bar .pb-value { font-size: 20px; font-weight: 800; color: #16a34a; }
+    .preview-bar .pb-label { font-size: 11px; color: #64748b; font-weight: 500; }
+    .preview-bar .pb-value { font-size: 18px; font-weight: 800; color: #16a34a; }
     .preview-bar .pb-detail { font-size: 11px; color: #94a3b8; margin-top: 1px; }
     .preview-bar .pb-warn { color: #ef4444; }
-    .preview-divider { width: 1px; height: 36px; background: #e2e8f0; }
-    .preview-item { text-align: center; }
+    .preview-divider { width: 1px; height: 40px; background: #e2e8f0; justify-self: center; }
+    .preview-item { text-align: center; padding: 0 8px; }
 
     /* Accordion */
     .accordion { display: flex; flex-direction: column; gap: 10px; }
@@ -196,7 +196,8 @@
     .gbs-item { background: rgba(255,255,255,0.7); border-radius: 10px; padding: 12px 14px; }
     .goal-miss .gbs-item { background: rgba(255,255,255,0.6); }
     .gbs-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 4px; }
-    .gbs-val { font-size: 18px; font-weight: 800; color: #0f172a; }
+    .gbs-val { font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.2; }
+    @media (max-width: 480px) { .gbs-val { font-size: 14px; } .gbs-item { padding: 10px 10px; } }
     .gbs-val.green { color: #15803d; }
     .gbs-val.red { color: #dc2626; }
     .goal-suggestions { margin-top: 20px; border-top: 1px solid #fecaca; padding-top: 16px; }
@@ -296,7 +297,7 @@
     .slide-val { font-size: 14px; font-weight: 800; color: #16a34a; white-space: nowrap; padding-left: 8px; }
     .goal-field .slide-val { color: #4ade80; }
     input.field-range { width: 100%; display: block; -webkit-appearance: none; height: 4px; border-radius: 4px; background: #e2e8f0; outline: none; cursor: pointer; margin-top: 4px; }
-    input.field-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #16a34a; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    input.field-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #16a34a; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
     .goal-field input.field-range { background: rgba(255,255,255,0.25); }
     .goal-field input.field-range::-webkit-slider-thumb { background: #4ade80; }
 
@@ -310,7 +311,10 @@
       .field-grid-3 { grid-template-columns: 1fr 1fr; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .swr-card { grid-template-columns: 1fr; }
-      .preview-divider { display: none; }
+      .preview-bar { padding: 12px 10px; }
+      .preview-item { padding: 0 4px; }
+      .preview-bar .pb-value { font-size: 15px; }
+      .preview-bar .pb-label { font-size: 10px; }
       .slider-row { flex-wrap: wrap; }
       .slider-label { min-width: auto; width: 100%; }
     }
@@ -555,19 +559,17 @@
         </div>
         <div class="acc-body">
           <p style="font-size:12px;color:#64748b;margin-bottom:16px">EMIs are constant (not inflated). Enter what you currently pay per month. Enter 0 if none.</p>
-          <div class="field-grid" style="grid-template-columns: 1fr 1fr 120px; gap:14px;">
-            <div class="field"><label>Home Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_home" value="0" oninput="livePreview()" /></div></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="field"><label>Home Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_home" value="0" oninput="livePreview()" /></div></div>
               <div class="field"><label>Remaining Tenure</label><div class="inp-wrap"><input class="inp has-sfx" type="number" id="emi_home_yrs" value="20" min="0" max="30" oninput="livePreview()" /><span class="sfx">yrs</span></div></div>
             </div>
-            <div></div>
-            <div class="field"><label>Car Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_car" value="0" oninput="livePreview()" /></div></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="field"><label>Car Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_car" value="0" oninput="livePreview()" /></div></div>
               <div class="field"><label>Remaining Tenure</label><div class="inp-wrap"><input class="inp has-sfx" type="number" id="emi_car_yrs" value="3" min="0" max="10" oninput="livePreview()" /><span class="sfx">yrs</span></div></div>
             </div>
-            <div></div>
-            <div class="field"><label>Other Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_other" value="0" oninput="livePreview()" /></div></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="field"><label>Other Loan EMI</label><div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="emi_other" value="0" oninput="livePreview()" /></div></div>
               <div class="field"><label>Remaining Tenure</label><div class="inp-wrap"><input class="inp has-sfx" type="number" id="emi_other_yrs" value="2" min="0" max="10" oninput="livePreview()" /><span class="sfx">yrs</span></div></div>
             </div>
           </div>
@@ -991,7 +993,7 @@ function renderResults(silent = false) {
   const badge = $('goal-badge');
   const hitRow = rows.find(r => r.corpusBase >= goalCorpus);
   const hitYear = hitRow ? hitRow.yr : null;
-  const rateLabel = r1.savRate >= 0.5 ? '🔥 Excellent' : r1.savRate >= 0.35 ? '✓ Good' : '⚠ Low';
+  const rateLabel = '';
   const totalContributed = rows.reduce((s, r) => s + r.savings, 0) + v('startCorpus');
   const returnsEarned = rEnd.corpusBase - totalContributed;
 
@@ -1002,12 +1004,12 @@ function renderResults(silent = false) {
       <div class="goal-badge-icon">🎯</div>
       <div class="goal-badge-title" style="color:#15803d">You'll hit your ${fmtS(goalCorpus)} goal in Year ${hitYear}!</div>
       <div class="goal-badge-stats">
-        <div class="gbs-item"><div class="gbs-label">Projected Corpus</div><div class="gbs-val green">${fmtS(rEnd.corpusBase)}</div></div>
-        <div class="gbs-item"><div class="gbs-label">Surplus</div><div class="gbs-val green">${fmtS(rEnd.corpusBase - goalCorpus)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Projected Corpus</div><div class="gbs-val">${fmtS(rEnd.corpusBase)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Surplus</div><div class="gbs-val">${fmtS(rEnd.corpusBase - goalCorpus)}</div></div>
         <div class="gbs-item"><div class="gbs-label">Goal Hit</div><div class="gbs-val">Year ${hitYear} · Age ${v('age') + hitYear}</div></div>
         <div class="gbs-item"><div class="gbs-label">Total You'll Invest</div><div class="gbs-val">${fmtS(totalContributed)}</div></div>
-        <div class="gbs-item"><div class="gbs-label">Returns Earned</div><div class="gbs-val green">${fmtS(returnsEarned)}</div></div>
-        <div class="gbs-item"><div class="gbs-label">Savings Rate</div><div class="gbs-val">${pct(r1.savRate)} ${rateLabel}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Returns Earned</div><div class="gbs-val">${fmtS(returnsEarned)}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Savings Rate</div><div class="gbs-val">${pct(r1.savRate)}</div></div>
       </div>`;
     launchConfetti();
   } else {
@@ -1034,7 +1036,7 @@ function renderResults(silent = false) {
         <div class="gbs-item"><div class="gbs-label">At Current Pace</div><div class="gbs-val">${extraYrs ? `${projYears + extraYrs} yrs total` : '30+ yrs'}</div></div>
         <div class="gbs-item"><div class="gbs-label">Total You'll Invest</div><div class="gbs-val">${fmtS(totalContributed)}</div></div>
         <div class="gbs-item"><div class="gbs-label">Returns Earned</div><div class="gbs-val red">${fmtS(returnsEarned)}</div></div>
-        <div class="gbs-item"><div class="gbs-label">Savings Rate</div><div class="gbs-val red">${pct(r1.savRate)} ${rateLabel}</div></div>
+        <div class="gbs-item"><div class="gbs-label">Savings Rate</div><div class="gbs-val">${pct(r1.savRate)}</div></div>
       </div>
       <div class="goal-suggestions">
         <div class="goal-suggestions-title">Here's how to close the gap</div>
@@ -1425,7 +1427,7 @@ function toggleCareerBreak() {
 // SLIDER CONFIG — all numeric inputs → sliders
 // ──────────────────────────────────────────────
 const SLIDER_CFG = {
-  goalCorpus:    { min:1000000,  max:500000000, step:500000,  fmt:'inr' },
+  goalCorpus:    { min:10000000, max:200000000, step:10000000, fmt:'inr' },
   startCorpus:   { min:0,        max:100000000, step:100000,  fmt:'inr' },
   inc1:          { min:300000,   max:10000000,  step:50000,   fmt:'inr' },
   inc2:          { min:300000,   max:10000000,  step:50000,   fmt:'inr' },
