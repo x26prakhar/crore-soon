@@ -430,9 +430,9 @@
               <div class="hint">You can tweak this on the results page with the What-If slider</div>
             </div>
             <div class="field">
-              <label>General Inflation Rate</label>
+              <label>Expense Inflation Rate</label>
               <div class="inp-wrap"><input class="inp has-sfx" type="number" id="genInflation" value="6" step="1" oninput="livePreview()" /><span class="sfx">%</span></div>
-              <div class="hint">Your expenses grow by this % every year</div>
+              <div class="hint">How fast your expenses grow every year</div>
             </div>
           </div>
           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:#166534">
@@ -529,11 +529,6 @@
             <div class="field">
               <label>Other Annual</label>
               <div class="inp-wrap"><span class="pfx">₹</span><input class="inp has-pfx" type="number" id="exp_other_a" value="0" oninput="livePreview()" /></div>
-            </div>
-            <div class="field">
-              <label>Expense Inflation Rate</label>
-              <div class="inp-wrap"><input class="inp has-sfx" type="number" id="expInflation" value="6" step="1" oninput="livePreview()" /><span class="sfx">%</span></div>
-              <div class="hint">How fast your expenses grow yearly</div>
             </div>
           </div>
         </div>
@@ -805,7 +800,7 @@ function project(overrides = {}) {
                  v('exp_other_m')) * 12;
   const aBase = v('exp_vacation') + v('exp_health') + v('exp_life') +
                 v('exp_gifts') + v('exp_other_a');
-  const expInflR  = v('expInflation') / 100;
+  const expInflR  = v('genInflation') / 100;
   const kidsInflR = v('kidsInflation') / 100;
   const genInflR  = v('genInflation') / 100;
 
@@ -1016,7 +1011,7 @@ function renderResults(silent = false) {
     `Savings rate: ${pct(r1.savRate)} (computed)`,
     `Return: ${v('baseReturn')}% pre-tax (${(baseRetR*100).toFixed(1)}% post-LTCG)`,
     `Inflation: ${v('genInflation')}%`,
-    `Exp. inflation: ${v('expInflation')}%`,
+    `Exp. inflation: ${v('genInflation')}%`,
     `${projYears} years · Age ${v('age')}→${v('age')+projYears}`,
     S.kids === 0 ? 'No kids' : S.kids === 1 ? '1 child' : '2 children',
   ];
@@ -1209,7 +1204,7 @@ function downloadExcel() {
   setA(54, 'LTCG Exemption (Rs/year)',         125000,                       'Rs 1.25L exempt/yr');
   setA(55, 'Effective Post-Tax Return (approx)', F('B52*(1-B53*0.7)'),      '~70% of gains exceed exemption');
   setA(57, '── INFLATION ──');
-  setA(58, 'Expense Inflation Rate',           v('expInflation') / 100,      `${v('expInflation')}%/yr`);
+  setA(58, 'Expense Inflation Rate',           v('genInflation') / 100,      `${v('genInflation')}%/yr`);
 
   const maxAsmRow = Math.max(...Object.keys(asmMap).map(Number));
   const asmRows = [];
@@ -1411,7 +1406,6 @@ const SLIDER_CFG = {
   exp_life:      { min:0,        max:200000,    step:5000,    fmt:'inr' },
   exp_gifts:     { min:0,        max:500000,    step:10000,   fmt:'inr' },
   exp_other_a:   { min:0,        max:500000,    step:10000,   fmt:'inr' },
-  expInflation:  { min:2,        max:15,        step:1,     fmt:'pct' },
   emi_home:      { min:0,        max:200000,    step:5000,    fmt:'inr' },
   emi_home_yrs:  { min:0,        max:30,        step:1,       fmt:'yrs' },
   emi_car:       { min:0,        max:100000,    step:2500,    fmt:'inr' },
